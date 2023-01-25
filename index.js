@@ -10,36 +10,42 @@ async function start() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  await page.goto("http://localhost:5010/003-SneakerScheduleTemplate.ejs");
+  await page.goto("url");
 
-  let header = `<html><head><style>@font-face {
-    font-family: "druk-wide-medium";
-    src: url(data:font/opentype; base64, ${temp});
-}</style></head><body>`;
+  // const header = await page.evaluate(
+  //   () => document.getElementById("header").innerHTML
+  // );
 
-  header += await page.evaluate(
-    () => document.getElementById("header").innerHTML
-  );
+  // fs.writeFileSync("temp.html", header, () => {
+  //   console.log("write done");
+  // });
 
-  header += `</body></html>`;
+  let footer;
 
-  fs.writeFileSync("temp.html", header, () => {
-    console.log("write done");
-  });
+  try {
+    footer = await page.evaluate(
+      () => document.getElementById("invisible-footer").innerHTML
+    );
+  } catch (e) {
+    footer = "<p></p>";
+  }
 
-  const footer = await page.evaluate(
-    () => document.getElementById("footer").innerHTML
-  );
+  await page.screenshot();
 
-  await page.pdf({
-    path: "test.pdf",
-    format: "A4",
-    printBackground: true,
-    displayHeaderFooter: true,
-    headerTemplate: header,
-    footerTemplate: footer,
-    margin: { top: 100, bottom: 100 },
-  });
+  try {
+    await page.pdf({
+      path: "test.pdf",
+      format: "A4",
+      printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: "<p></p>",
+      footerTemplate: footer,
+      margin: { top: 0, bottom: 0 },
+      // margin: { top: 50, bottom: 100 },
+    });
+  } catch (e) {
+    console.log(45, e);
+  }
 
   await browser.close();
 }
